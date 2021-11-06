@@ -1,10 +1,11 @@
 package array
 
 import (
+	"fmt"
 	"reflect"
 )
 
-func Index(lst, v interface{}) int {
+func IndexOf(lst, v interface{}, fns ...func(a interface{}) interface{}) int {
 	if lst == nil {
 		return -1
 	}
@@ -15,43 +16,44 @@ func Index(lst, v interface{}) int {
 
 	for i := 0; i < l; i++ {
 		item := indirect(inv.Index(i))
-		// if item.Kind() != vv.Kind() {
-		// 	continue
-		// }
-
-		if item.Elem() == vv.Elem() {
-			return i
+		fmt.Println(!sameType(item, vv), item.Kind(), vv.Kind())
+		if !sameType(item, vv) {
+			continue
 		}
 
-		// switch item.Kind() {
-		// case reflect.Int, reflect.Int16, reflect.Int8, reflect.Int32, reflect.Int64:
-		// 	if item.Int() == vv.Int() {
-		// 		return i
-		// 	}
-		// case reflect.Uint, reflect.Uint16, reflect.Uint8, reflect.Uint32, reflect.Uint64:
-		// 	if item.Uint() == vv.Uint() {
-		// 		return i
-		// 	}
-		// case reflect.Bool:
-		// 	if item.Bool() == vv.Bool() {
-		// 		return i
-		// 	}
-		// case reflect.Float32, reflect.Float64:
-		// 	if item.Float() == vv.Float() {
-		// 		return i
-		// 	}
-		// default:
-		// 	if item.Interface() == v {
-		// 		return i
-		// 	}
-		// }
+		switch item.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			if item.Int() == vv.Int() {
+				return i
+			}
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			if item.Uint() == vv.Uint() {
+				return i
+			}
+		case reflect.Float32, reflect.Float64:
+			if item.Float() == vv.Float() {
+				return i
+			}
+		case reflect.String:
+			if item.String() == vv.String() {
+				return i
+			}
+		case reflect.Bool:
+			if item.Bool() == vv.Bool() {
+				return i
+			}
+		default:
+			if item == vv {
+				return i
+			}
+		}
 	}
 
 	return -1
 }
 
 func Contains(lst, v interface{}) bool {
-	return Index(lst, v) > -1
+	return IndexOf(lst, v) > -1
 }
 
 func isArray(v reflect.Value) bool {

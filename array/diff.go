@@ -16,10 +16,6 @@ func Diff(diff, a, b interface{}) {
 		dv = reflect.ValueOf(diff)
 	)
 
-	if dv.Kind() != reflect.Ptr {
-		return
-	}
-
 	dv = indirect(dv)
 
 	if b == nil {
@@ -28,10 +24,13 @@ func Diff(diff, a, b interface{}) {
 	}
 
 	l := av.Len()
+	var arr = reflect.MakeSlice(av.Type(), 0, l)
 	for i := 0; i < l; i++ {
 		v := av.Index(i)
 		if !Contains(bv.Interface(), v.Interface()) {
-			reflect.Append(dv, v)
+			arr = reflect.Append(arr, v)
 		}
 	}
+
+	dv.Set(arr)
 }

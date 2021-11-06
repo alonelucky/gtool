@@ -10,7 +10,7 @@ func TestDiff(t *testing.T) {
 	)
 
 	Diff(&out, lst1, lst2)
-
-	t.Error(out)
-
+	if Joins(out, ",") != "123,456" {
+		t.Error(out)
+	}
 }

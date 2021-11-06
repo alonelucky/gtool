@@ -8,8 +8,19 @@ func TestContains(t *testing.T) {
 		lst2 = []int32{1, 2, 3}
 	)
 
-	t.Error(Contains(lst1, "123"))
-	t.Error(Contains(lst1, "223"))
-	t.Error(Contains(lst2, 0))
-	t.Error(Contains(lst2, 2))
+	if ok := Contains(lst1, "123"); !ok {
+		t.Error("lst1-123", ok)
+	}
+
+	if ok := Contains(lst1, "223"); ok {
+		t.Error("lst1-223", ok)
+	}
+
+	if ok := Contains(lst2, 0); ok {
+		t.Error("lst2-0", ok)
+	}
+
+	if ok := Contains(lst2, 2); !ok {
+		t.Error("lst2-2", ok)
+	}
 }

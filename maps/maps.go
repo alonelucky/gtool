@@ -1,6 +1,9 @@
 package maps
 
-import "reflect"
+import (
+	"reflect"
+	"sort"
+)
 
 func Range(in, out interface{}, fn func(k, v interface{}) reflect.Value) {
 	if in == nil {
@@ -38,4 +41,21 @@ func Values(in, out interface{}) {
 	Range(in, out, func(k, v interface{}) reflect.Value {
 		return reflect.ValueOf(v)
 	})
+}
+
+// KeysString is get map keys.
+// when input map[string]interface{} out []string
+func KeysString(in map[string]interface{}) (out []string) {
+	for k, _ := range in {
+		out = append(out, k)
+	}
+	return
+}
+
+func KeysOrder(in interface{}) (out []string) {
+	Range(in, out, func(k, v interface{}) reflect.Value {
+		return reflect.ValueOf(k)
+	})
+	sort.Strings(out)
+	return
 }

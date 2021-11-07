@@ -3,9 +3,12 @@ package maps
 import (
 	"reflect"
 	"sort"
+
+	"github.com/alonelucky/gtool/reflects"
 )
 
-func Range(in, out interface{}, fn func(k, v interface{}) reflect.Value) {
+// Range 遍历map, 返回数组
+func Range(in, out interface{}, fn func(k, v interface{}) interface{}) {
 	if in == nil {
 		return
 	}
@@ -18,28 +21,33 @@ func Range(in, out interface{}, fn func(k, v interface{}) reflect.Value) {
 		panic("in param must be a map interface{}")
 	}
 
-	if outv.Type().Kind() != reflect.Slice {
-		panic("in param must be a slice interface{}")
+	if v := reflects.Indirect(outv); outv.Kind() != reflect.Ptr || v.Kind() != reflect.Slice {
+		panic("in param must be a slice ptr")
 	}
 
 	var (
 		iter = inv.MapRange()
 	)
 
+	outv = reflects.Indirect(outv)
+	var arr = reflect.MakeSlice(outv.Type(), 0, 4)
 	for iter.Next() {
-		reflect.Append(outv, fn(iter.Key(), iter.Value()))
+		v := fn(iter.Key().Interface(), iter.Value().Interface())
+		vv := reflect.ValueOf(v)
+		arr = reflect.Append(arr, vv)
 	}
+	outv.Set(arr)
 }
 
 func Keys(in, out interface{}) {
-	Range(in, out, func(k, v interface{}) reflect.Value {
-		return reflect.ValueOf(k)
+	Range(in, out, func(k, v interface{}) interface{} {
+		return k
 	})
 }
 
 func Values(in, out interface{}) {
-	Range(in, out, func(k, v interface{}) reflect.Value {
-		return reflect.ValueOf(v)
+	Range(in, out, func(k, v interface{}) interface{} {
+		return v
 	})
 }
 
@@ -49,13 +57,13 @@ func KeysString(in map[string]interface{}) (out []string) {
 	for k, _ := range in {
 		out = append(out, k)
 	}
+	sort.Strings(out)
 	return
 }
 
 func KeysOrder(in interface{}) (out []string) {
-	Range(in, out, func(k, v interface{}) reflect.Value {
-		return reflect.ValueOf(k)
+	Range(in, out, func(k, v interface{}) interface{} {
+		return k
 	})
-	sort.Strings(out)
 	return
 }

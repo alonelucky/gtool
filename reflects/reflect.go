@@ -69,3 +69,11 @@ func SameKind(a, b reflect.Value) bool {
 
 	return ak == bk
 }
+
+// Comparable 可比较的类型
+//
+// 默认原始类型支持比较 int/unit/float/string
+func Comparable(v reflect.Value) bool {
+	k := v.Kind()
+	return (k > 1 && k < 14) || k == 24
+}

@@ -2,7 +2,11 @@ package fn
 
 import (
 	"context"
+	"fmt"
 	"reflect"
+
+	"github.com/alonelucky/gtool/numbers"
+	"github.com/alonelucky/gtool/reflects"
 )
 
 type Promise func() (i interface{}, e error)
@@ -15,6 +19,7 @@ type result struct {
 
 // 并发执行,并收集全部结果
 func All(fns []Promise, maxs ...int) (lst []interface{}, err error) {
+	fmt.Println(fns, maxs)
 	var ctx = context.Background()
 	var max = len(fns)
 	if len(maxs) > 0 {
@@ -22,9 +27,7 @@ func All(fns []Promise, maxs ...int) (lst []interface{}, err error) {
 	}
 
 	ctx, cancel := context.WithCancel(ctx)
-	defer func() {
-		cancel()
-	}()
+	defer cancel()
 
 	var (
 		cfn = make(chan Promise, max)
@@ -39,6 +42,9 @@ func All(fns []Promise, maxs ...int) (lst []interface{}, err error) {
 					// 任务池终止
 					return
 				case fn := <-cfn:
+					if fn == nil {
+						continue
+					}
 					i, e := fn()
 					ch <- &result{
 						data: i,
@@ -50,7 +56,8 @@ func All(fns []Promise, maxs ...int) (lst []interface{}, err error) {
 		}(i)
 	}
 
-	for i := 0; i < len(fns); i++ {
+	l := len(fns)
+	for i := 0; i < l; i++ {
 		cfn <- fns[i]
 	}
 
@@ -60,16 +67,21 @@ func All(fns []Promise, maxs ...int) (lst []interface{}, err error) {
 		lst = append(lst, r.data)
 		if err == nil && r.err != nil {
 			cancel()
+			close(ch)
 			err = r.err
 		}
-	}
 
+		if len(lst) == l {
+			cancel()
+			close(ch)
+		}
+	}
 	return
 }
 
 func WorkFlow(lst interface{}, max int, fn func(i interface{}, idx int) (v interface{}, e error)) (ret []interface{}, e error) {
 	var (
-		inv = indirect(reflect.ValueOf(lst))
+		inv = reflects.Indirect(reflect.ValueOf(lst))
 
 		ctx = context.Background()
 		err []error
@@ -79,11 +91,7 @@ func WorkFlow(lst interface{}, max int, fn func(i interface{}, idx int) (v inter
 
 	// 如果没有限制, 则自行限制10个
 	if max <= 0 {
-		max = l
-
-		if max > 10 {
-			max = 10
-		}
+		max = numbers.MinInt(10, l)
 	}
 
 	var (
@@ -116,27 +124,26 @@ func WorkFlow(lst interface{}, max int, fn func(i interface{}, idx int) (v inter
 
 	// 任务派发
 	for i := 0; i < l; i++ {
-		go func(i int) {
-			work <- &result{
-				data: inv.Index(i).Interface(),
-				idx:  i,
-			}
-		}(i)
+		work <- &result{
+			data: inv.Index(i).Interface(),
+			idx:  i,
+		}
 	}
 
 	for v := range results {
-		if l == 0 {
-			close(results)
-		}
+		l--
 		// 接收数据
 		if v.err != nil {
 			err = append(err, v.err)
 			cancel()
+			close(results)
 			continue
 		}
 		ret = append(ret, v.data)
-		//
-		l--
+		if l == 1 {
+			cancel()
+			close(results)
+		}
 	}
 
 	if len(err) > 0 {
@@ -145,11 +152,4 @@ func WorkFlow(lst interface{}, max int, fn func(i interface{}, idx int) (v inter
 	}
 
 	return
-}
-
-func indirect(v reflect.Value) reflect.Value {
-	for v.Kind() == reflect.Ptr {
-		v = reflect.Indirect(v)
-	}
-	return v
 }

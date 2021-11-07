@@ -1,9 +1,14 @@
-package array
+package arrays
 
 import (
 	"reflect"
+
+	"github.com/alonelucky/gtool/reflects"
 )
 
+// ToMap 将切片转换为map类型
+//
+// Convert slice to map type
 func ToMap(in, out interface{}, fn func(item interface{}, i int) (k, v interface{})) {
 	if in == nil {
 		return
@@ -14,11 +19,11 @@ func ToMap(in, out interface{}, fn func(item interface{}, i int) (k, v interface
 		outv = reflect.ValueOf(out)
 	)
 
-	if !isArray(inv) {
+	if !reflects.IsArray(inv) {
 		return
 	}
 
-	outv = indirect(outv)
+	outv = reflects.Indirect(outv)
 
 	if outv.Kind() != reflect.Map {
 		return
@@ -36,6 +41,8 @@ func ToMap(in, out interface{}, fn func(item interface{}, i int) (k, v interface
 // 数组类型转换为 map[T]M,
 //
 // 其中field为需要提取的key，M为map则为keyName,M为struct则为fieldName
+//
+// The array type is extracted as map type
 func Column(lst, out interface{}, field ...string) {
 	if lst == nil || out == nil || len(field) == 0 {
 		return
@@ -43,12 +50,12 @@ func Column(lst, out interface{}, field ...string) {
 
 	var (
 		key    = field[0]
-		inv    = indirect(reflect.ValueOf(lst))
+		inv    = reflects.Indirect(reflect.ValueOf(lst))
 		outv   = reflect.ValueOf(out)
 		length int
 	)
 
-	if !isArray(inv) || outv.Kind() != reflect.Ptr {
+	if !reflects.IsArray(inv) || outv.Kind() != reflect.Ptr {
 		return
 	}
 
@@ -56,7 +63,7 @@ func Column(lst, out interface{}, field ...string) {
 		return
 	}
 
-	outv = indirect(outv)
+	outv = reflects.Indirect(outv)
 
 	if outv.Kind() != reflect.Map {
 		return
@@ -70,7 +77,7 @@ func Column(lst, out interface{}, field ...string) {
 
 	for i := 0; i < length; i++ {
 		v := inv.Index(i)
-		switch cv := indirect(v); cv.Kind() {
+		switch cv := reflects.Indirect(v); cv.Kind() {
 		case reflect.Struct:
 			var sv reflect.Value
 			if idx == -1 {

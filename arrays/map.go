@@ -1,7 +1,14 @@
-package array
+package arrays
 
-import "reflect"
+import (
+	"reflect"
 
+	"github.com/alonelucky/gtool/reflects"
+)
+
+// Map 遍历 input slice type, output slice type
+//
+// 通过fn函数定义修改后的返回信息
 func Map(in, out interface{}, fn func(v interface{}, i int) interface{}) {
 	if in == nil {
 		return
@@ -12,15 +19,15 @@ func Map(in, out interface{}, fn func(v interface{}, i int) interface{}) {
 		outv = reflect.ValueOf(out)
 	)
 
-	if !isArray(inv) || outv.Kind() != reflect.Ptr {
+	if !reflects.IsArray(inv) || outv.Kind() != reflect.Ptr {
 		return
 	}
 
 	l := inv.Len()
 
-	outv = indirect(outv)
+	outv = reflects.Indirect(outv)
 
-	if !isArray(outv) {
+	if !reflects.IsArray(outv) {
 		return
 	}
 
@@ -30,6 +37,9 @@ func Map(in, out interface{}, fn func(v interface{}, i int) interface{}) {
 	}
 }
 
+// Map 遍历 input slice type, change input
+//
+// 通过fn函数定义修改后的返回信息
 func MapSelf(in interface{}, fn func(v interface{}, i int) interface{}) {
 	if in == nil {
 		return
@@ -37,7 +47,7 @@ func MapSelf(in interface{}, fn func(v interface{}, i int) interface{}) {
 
 	var (
 		inv = reflect.ValueOf(in)
-		arr = indirect(inv)
+		arr = reflects.Indirect(inv)
 	)
 
 	if inv.Kind() != reflect.Ptr {

@@ -1,4 +1,4 @@
-package array
+package arrays
 
 import "testing"
 
@@ -17,7 +17,7 @@ func TestSort(t *testing.T) {
 		out2 []int32
 	)
 
-	Sort(example0, nil, SortFunc.Int16)
+	Sort(example0, nil)
 	if Joins(example0, ",") != "1494,1817,1960,2286,2349,2672,2773,2872,3318,3663,4042,4069,4115,4435,5383,5733,6072,9440,9718,7137" {
 		t.Error("example0", example0)
 	}

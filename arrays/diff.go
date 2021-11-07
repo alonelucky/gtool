@@ -1,7 +1,9 @@
-package array
+package arrays
 
 import (
 	"reflect"
+
+	"github.com/alonelucky/gtool/reflects"
 )
 
 // 存在A中，不存在B中,返回diff
@@ -11,12 +13,12 @@ func Diff(diff, a, b interface{}) {
 	}
 
 	var (
-		av = indirect(reflect.ValueOf(a))
-		bv = indirect(reflect.ValueOf(b))
+		av = reflects.Indirect(reflect.ValueOf(a))
+		bv = reflects.Indirect(reflect.ValueOf(b))
 		dv = reflect.ValueOf(diff)
 	)
 
-	dv = indirect(dv)
+	dv = reflects.Indirect(dv)
 
 	if b == nil {
 		reflect.AppendSlice(dv, av)

@@ -1,7 +1,9 @@
-package array
+package arrays
 
 import (
 	"reflect"
+
+	"github.com/alonelucky/gtool/reflects"
 )
 
 // Sort is order by slice.
@@ -9,7 +11,7 @@ import (
 // when out is nil, sort by input, input must be slice ptr.
 //
 // when out is no-nil, sort by input , output out, out must be slice ptr.
-func Sort(in, out interface{}, fn func(a, b interface{}) int8) {
+func Sort(in, out interface{}, fns ...func(a, b interface{}) int8) {
 	if in == nil {
 		return
 	}
@@ -19,10 +21,10 @@ func Sort(in, out interface{}, fn func(a, b interface{}) int8) {
 		outv = reflect.ValueOf(out)
 	)
 
-	inv = indirect(inv)
+	inv = reflects.Indirect(inv)
 	l := inv.Len()
 
-	outv = indirect(outv)
+	outv = reflects.Indirect(outv)
 	if outv.Kind() == reflect.Slice {
 		copyslice(outv, inv)
 	} else {
@@ -33,7 +35,24 @@ func Sort(in, out interface{}, fn func(a, b interface{}) int8) {
 		for j := i + 1; j < l-1; j++ {
 			jv := outv.Index(j)
 			iv := outv.Index(i)
-			if fn(iv.Interface(), jv.Interface()) > 0 {
+			var gte bool
+			if len(fns) > 0 {
+				gte = fns[0](iv.Interface(), jv.Interface()) > 0
+			} else if reflects.SameKind(iv, jv) && reflects.Comparable(iv) {
+				if reflects.IsInt(iv) {
+					gte = iv.Int() > jv.Int()
+				} else if reflects.IsUnit(iv) {
+					gte = iv.Uint() > jv.Uint()
+				} else if reflects.IsFloat(iv) {
+					gte = iv.Float() > jv.Float()
+				} else if iv.Kind() == reflect.String {
+					gte = iv.String() > jv.String()
+				} else {
+					gte = iv == jv
+				}
+			}
+
+			if gte {
 				tmp := iv.Interface()
 				iv.Set(jv)
 				jv.Set(reflect.ValueOf(tmp))

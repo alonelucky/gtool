@@ -1,25 +1,30 @@
-package array
+package arrays
 
 import (
 	"reflect"
+
+	"github.com/alonelucky/gtool/reflects"
 )
 
+// IndexOf gets the position of the element in the slice.
+//
+// You can pass in the comparison function, and return true to prove that they are equal
 func IndexOf(lst, v interface{}, fns ...func(a, b interface{}) bool) int {
 	if lst == nil {
 		return -1
 	}
 
 	var inv = reflect.ValueOf(lst)
-	var vv = indirect(reflect.ValueOf(v))
+	var vv = reflects.Indirect(reflect.ValueOf(v))
 	var l = inv.Len()
 
 	for i := 0; i < l; i++ {
-		item := indirect(inv.Index(i))
+		item := reflects.Indirect(inv.Index(i))
 		if len(fns) > 0 && fns[0](item.Interface(), v) {
 			return i
 		}
 
-		if !sameType(item, vv) {
+		if !reflects.SameKind(item, vv) {
 			continue
 		}
 
@@ -54,45 +59,9 @@ func IndexOf(lst, v interface{}, fns ...func(a, b interface{}) bool) int {
 	return -1
 }
 
+// Contains Does the slice contain elements
+//
+// You can pass in the comparison function, and return true to prove that they are equal
 func Contains(lst, v interface{}, fns ...func(a, b interface{}) bool) bool {
 	return IndexOf(lst, v, fns...) > -1
-}
-
-func isArray(v reflect.Value) bool {
-	k := v.Kind()
-	if k == reflect.Array || k == reflect.Slice {
-		return true
-	}
-	return false
-}
-
-func indirect(v reflect.Value) reflect.Value {
-	for v.Kind() == reflect.Ptr {
-		v = reflect.Indirect(v)
-	}
-	return v
-}
-
-func IsInt(v reflect.Value) bool {
-	switch v.Kind() {
-	case reflect.Int, reflect.Int16, reflect.Int8, reflect.Int32, reflect.Int64:
-		return true
-	}
-	return false
-}
-
-func IsUnit(v reflect.Value) bool {
-	switch v.Kind() {
-	case reflect.Uint, reflect.Uint16, reflect.Uint8, reflect.Uint32, reflect.Uint64:
-		return true
-	}
-	return false
-}
-
-func IsFloat(v reflect.Value) bool {
-	k := v.Kind()
-	if k == reflect.Float32 || k == reflect.Float64 {
-		return true
-	}
-	return false
 }

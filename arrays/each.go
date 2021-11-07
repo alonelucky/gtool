@@ -1,7 +1,12 @@
-package array
+package arrays
 
-import "reflect"
+import (
+	"reflect"
 
+	"github.com/alonelucky/gtool/reflects"
+)
+
+// Each 遍历, 不做返回操作
 func Each(in interface{}, fn func(v interface{}, i int)) {
 	if in == nil {
 		return
@@ -9,7 +14,7 @@ func Each(in interface{}, fn func(v interface{}, i int)) {
 
 	var inv = reflect.ValueOf(in)
 
-	if !isArray(inv) {
+	if !reflects.IsArray(inv) {
 		return
 	}
 

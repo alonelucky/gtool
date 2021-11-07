@@ -1,11 +1,10 @@
 package array
 
 import (
-	"fmt"
 	"reflect"
 )
 
-func IndexOf(lst, v interface{}, fns ...func(a interface{}) interface{}) int {
+func IndexOf(lst, v interface{}, fns ...func(a, b interface{}) bool) int {
 	if lst == nil {
 		return -1
 	}
@@ -16,7 +15,10 @@ func IndexOf(lst, v interface{}, fns ...func(a interface{}) interface{}) int {
 
 	for i := 0; i < l; i++ {
 		item := indirect(inv.Index(i))
-		fmt.Println(!sameType(item, vv), item.Kind(), vv.Kind())
+		if len(fns) > 0 && fns[0](item.Interface(), v) {
+			return i
+		}
+
 		if !sameType(item, vv) {
 			continue
 		}
@@ -52,8 +54,8 @@ func IndexOf(lst, v interface{}, fns ...func(a interface{}) interface{}) int {
 	return -1
 }
 
-func Contains(lst, v interface{}) bool {
-	return IndexOf(lst, v) > -1
+func Contains(lst, v interface{}, fns ...func(a, b interface{}) bool) bool {
+	return IndexOf(lst, v, fns...) > -1
 }
 
 func isArray(v reflect.Value) bool {
